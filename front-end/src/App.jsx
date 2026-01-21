@@ -8,21 +8,27 @@ import HomePage from './pages/HomePage'
 import AboutPage from './pages/AboutPage'
 import ArticlePage from './pages/ArticlePage'
 import ArticlesListPage from './pages/ArticlesList'
+import NavBar from "./navBar";
+import Layout from "./Layout"
+
 
 const routes = [{
   path: '/',
-  element: <HomePage />
-}, {
-  path: '/about',
-  element: <AboutPage />
-}, {
-  path: '/article/individual',
-  element: <ArticlePage />
-}, {
-  path: '/articles',
-  element: <ArticlesListPage />
+  element: <Layout />,
+  children: [{
+    path: '/',
+    element: <HomePage />
+  }, {
+    path: '/about',
+    element: <AboutPage />
+  }, {
+    path: '/article/:name',
+    element: <ArticlePage />
+  }, {
+    path: '/articles',
+    element: <ArticlesListPage />
+  }]
 }]
-
 const router = createBrowserRouter(routes);
 
 function App() {
