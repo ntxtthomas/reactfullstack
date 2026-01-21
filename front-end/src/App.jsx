@@ -22,7 +22,7 @@ const routes = [{
     path: '/about',
     element: <AboutPage />
   }, {
-    path: '/article/:name',
+    path: '/articles/:name',
     element: <ArticlePage />
   }, {
     path: '/articles',
