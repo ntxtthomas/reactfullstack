@@ -7,7 +7,7 @@ import './App.css'
 import HomePage from './pages/HomePage'
 import AboutPage from './pages/AboutPage'
 import ArticlePage from './pages/ArticlePage'
-import ArticlesListPage from './pages/ArticlesList'
+import ArticlesListPage from './pages/ArticlesListPage'
 import NavBar from "./navBar";
 import Layout from "./Layout"
 
