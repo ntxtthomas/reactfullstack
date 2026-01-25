@@ -32,6 +32,20 @@ app.post('/api/articles/:name/upvote', (req, res) => {
     res.status(404).json({ message: 'Article not found' });
   }
 });
+
+app.post('/api/articles/:name/comments', (req, res) => {
+  const { name } = req.params;
+  const { postedBy, text } = req.body;
+
+  const article = articleInfo.find(a => a.name === name);
+
+  if (article) {
+    article.comments.push({ postedBy, text });
+    res.status(200).json(article);
+  } else {
+    res.status(404).json({ message: 'Article not found' });
+  }
+});
 // app.get('/hello', (req, res) => {
 //   res.send('Hello, World from a GET endpoint!');
 // });
