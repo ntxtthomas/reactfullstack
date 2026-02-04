@@ -21,12 +21,32 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+const missingFirebaseVars = Object.entries(firebaseConfig)
+  .filter(([, value]) => !value)
+  .map(([key]) => key);
 
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+if (missingFirebaseVars.length > 0) {
+  createRoot(document.getElementById('root')).render(
+    <StrictMode>
+      <div style={{ padding: "1rem" }}>
+        <h1>Missing Firebase configuration</h1>
+        <p>Set these in front-end/.env.local and restart the dev server:</p>
+        <ul>
+          {missingFirebaseVars.map((key) => (
+            <li key={key}>{key}</li>
+          ))}
+        </ul>
+      </div>
+    </StrictMode>
+  );
+} else {
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+
+  createRoot(document.getElementById('root')).render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
+}

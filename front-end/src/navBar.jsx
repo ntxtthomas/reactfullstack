@@ -6,7 +6,6 @@ import useUser from "./useUser";
 export default function NavBar() {
   const { isLoading, user } = useUser();
   const navigate = useNavigate();
-  
 
   return (
     <nav>
@@ -14,7 +13,6 @@ export default function NavBar() {
         <li><Link to="/">Home</Link></li>
         <li><Link to="/about">About</Link></li>
         <li><Link to="/articles">Articles</Link></li>
-        
         {isLoading ? <li>Loading...</li> : (
           <>
           {user && (
@@ -30,7 +28,6 @@ export default function NavBar() {
           </li>
           </>
           )}
-          
       </ul>
     </nav>
   );

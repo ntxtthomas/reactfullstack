@@ -9,7 +9,8 @@ export default function LoginPage() {
 
   const navigate = useNavigate();
 
-  async function logIn() {
+  async function logIn(event) {
+    event.preventDefault();
     try {
       await signInWithEmailAndPassword(getAuth(), email, password);
       navigate("/");
@@ -22,7 +23,7 @@ export default function LoginPage() {
     <>
     <h1>Login</h1>
     {error && <p>{error}</p>}
-    <form>
+    <form onSubmit={logIn}>
       <label>
         Email:
         <input 
@@ -41,9 +42,7 @@ export default function LoginPage() {
           type="password" 
           name="password" />
       </label>
-      <button 
-        onClick={logIn} 
-        type="submit">Login</button>
+      <button type="submit">Login</button>
         <Link to="/create-account">Don't have an account? Register</Link>
     </form>
     </>
