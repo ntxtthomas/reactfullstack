@@ -113,3 +113,23 @@ a p {
 a:hover {
   text-decoration: underline;
 }
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+} 
+input {
+  padding: 0.5em;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1em;
+}
