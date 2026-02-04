@@ -133,3 +133,9 @@ input {
   border-radius: 4px;
   font-size: 1em;
 }
+.error {
+  display: flex;
+  color: red;
+  font-weight: bold;
+
+}

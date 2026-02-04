@@ -1,49 +1,85 @@
 import express from 'express';
+import pkg from 'mongodb';
+
+const { MongoClient, ServerApiVersion } = pkg;
 
 const app = express();
-const PORT = process.env.PORT || 8000;
-
-const articleInfo = [
-  { name: 'learn-node',
-    upvotes: 0,
-    comments: [],
-  },
-  { name: 'learn-react',
-    upvotes: 0,
-    comments: [],
-  },
-  { name: 'learn-mongodb',
-    upvotes: 0,
-    comments: [],
-  },
-]
-
 app.use(express.json());
 
-app.post('/api/articles/:name/upvote', (req, res) => {
-  const articleName = req.params.name;
+const PORT = process.env.PORT || 8000;
 
-  const article = articleInfo.find(a => a.name === articleName);
+// MongoDB connection
+const uri = 'mongodb://127.0.0.1:27017';
+const client = new MongoClient(uri);
 
-  if (article) {
-    article.upvotes += 1;
-    res.status(200).json(article);
-  } else {
-    res.status(404).json({ message: 'Article not found' });
+let db;
+
+// Connect to MongoDB once when server starts
+async function connectToDb() {
+  try {
+    await client.connect();
+    db = client.db('full-stack-react-db');
+    console.log('Connected to MongoDB');
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    process.exit(1);
+  }
+}
+
+app.get('/api/articles/:name', async (req, res) => {
+  const { name } = req.params;
+  
+  try {
+    const article = await db.collection('articles').findOne({ name });
+    
+    if (article) {
+      res.json(article);
+    } else {
+      res.status(404).json({ message: 'Article not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching article', error: error.message });
   }
 });
 
-app.post('/api/articles/:name/comments', (req, res) => {
+app.post('/api/articles/:name/upvote', async (req, res) => {
+  const { name } = req.params;
+  
+  try {
+    const result = await db.collection('articles').findOneAndUpdate(
+      { name },
+      { $inc: { upvotes: 1 } },
+      { returnDocument: 'after' }
+    );
+    
+    if (result) {
+      res.json(result);
+    } else {
+      res.status(404).json({ message: 'Article not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Error upvoting article', error: error.message });
+  }
+});
+
+app.post('/api/articles/:name/comments', async (req, res) => {
   const { name } = req.params;
   const { postedBy, text } = req.body;
-
-  const article = articleInfo.find(a => a.name === name);
-
-  if (article) {
-    article.comments.push({ postedBy, text });
-    res.status(200).json(article);
-  } else {
-    res.status(404).json({ message: 'Article not found' });
+  
+  try {
+    const result = await db.collection('articles').findOneAndUpdate(
+      { name },
+      { $push: { comments: { postedBy, text } } },
+      { returnDocument: 'after' }
+    );
+    
+    if (result) {
+      res.json(result);
+    } else {
+      res.status(404).json({ message: 'Article not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Error adding comment', error: error.message });
   }
 });
 // app.get('/hello', (req, res) => {
@@ -61,6 +97,9 @@ app.post('/api/articles/:name/comments', (req, res) => {
 //   res.send('Hello, ' + req.body.name + ', from a POST endpoint!');
 // });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+// Connect to database and start server
+connectToDb().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+  });
 });
