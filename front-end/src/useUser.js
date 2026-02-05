@@ -13,7 +13,12 @@ export function useUser() {
     return () => unsubscribe();
     }, []);
 
-  return { user, isLoading };
+  const getToken = async () => {
+    if (!user) return null;
+    return user.getIdToken();
+  };
+
+  return { user, isLoading, getToken };
 }
 
 export default useUser;

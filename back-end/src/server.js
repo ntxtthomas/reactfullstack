@@ -46,7 +46,9 @@ app.get('/api/articles/:name', async (req, res) => {
     if (article) {
       res.json(article);
     } else {
-      res.status(404).json({ message: 'Article not found' });
+      const newArticle = { name, upvotes: 0, comments: [], upvoteIds: [] };
+      await db.collection('articles').insertOne(newArticle);
+      res.json(newArticle);
     }
   } catch (error) {
     res.status(500).json({ message: 'Error fetching article', error: error.message });
@@ -59,29 +61,33 @@ app.use(async function(req, res, next) {
   if (authtoken){
     const user = await admin.auth().verifyIdToken(authtoken);
     req.user = user;
+    next();
   } else {
     res.sendStatus(400);
   }
-  next();
 });
 
 app.post('/api/articles/:name/upvote', async (req, res) => {
   const { name } = req.params;
-  
-  try {
-    const result = await db.collection('articles').findOneAndUpdate(
-      { name },
-      { $inc: { upvotes: 1 } },
-      { returnDocument: 'after' }
-    );
-    
-    if (result) {
-      res.json(result);
-    } else {
-      res.status(404).json({ message: 'Article not found' });
+  const { uid } = req.user;
+
+  const { value: upDatedArticle } = await db.collection('articles').findOneAndUpdate(
+    { name, upvoteIds: { $ne: uid } },
+    {
+      $inc: { upvotes: 1 },
+      $addToSet: { upvoteIds: uid },
+      $setOnInsert: { comments: [] },
+    },
+    {
+      returnDocument: 'after',
+      upsert: true,
     }
-  } catch (error) {
-    res.status(500).json({ message: 'Error upvoting article', error: error.message });
+  );
+
+  if (upDatedArticle) {
+    res.json(upDatedArticle);
+  } else {
+    res.status(403).json({ message: 'User has already upvoted this article' });
   }
 });
 
@@ -90,16 +96,27 @@ app.post('/api/articles/:name/comments', async (req, res) => {
   const { postedBy, text } = req.body;
   
   try {
-    const result = await db.collection('articles').findOneAndUpdate(
+    const { value: updatedArticle } = await db.collection('articles').findOneAndUpdate(
       { name },
-      { $push: { comments: { postedBy, text } } },
-      { returnDocument: 'after' }
+      {
+        $push: { comments: { postedBy, text } },
+        $setOnInsert: { upvotes: 0, upvoteIds: [] },
+      },
+      {
+        returnDocument: 'after',
+        upsert: true,
+      }
     );
     
-    if (result) {
-      res.json(result);
+    if (updatedArticle) {
+      res.json(updatedArticle);
     } else {
-      res.status(404).json({ message: 'Article not found' });
+      const article = await db.collection('articles').findOne({ name });
+      if (article) {
+        res.json(article);
+      } else {
+        res.status(404).json({ message: 'Article not found' });
+      }
     }
   } catch (error) {
     res.status(500).json({ message: 'Error adding comment', error: error.message });
